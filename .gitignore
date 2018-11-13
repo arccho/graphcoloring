@@ -31,6 +31,10 @@ MANIFEST
 *.manifest
 *.spec
 
+# Conf IDE PyCharm
+.idea/
+venv/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
