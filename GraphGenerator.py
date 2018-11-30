@@ -13,8 +13,9 @@ def create_edges(list_nodes, prob_edge):
     list_edge = []
     for i in list_nodes:
         for j in list_nodes:
-            if numpy.random.choice((True, False), p=[prob_edge, 1-prob_edge]) == True:
-                list_edge.append((i, j))
+            if i != j:
+                if numpy.random.choice((True, False), p=[prob_edge, 1-prob_edge]) == True:
+                    list_edge.append((i, j))
     return list_edge
 
 def check_unique_nodes(list_node):
@@ -28,7 +29,6 @@ def check_unique_edge(list_edge):
     for i in range(len(list_edge)):
         for y in range(len(list_edge)):
             if i != y and list_edge[i][0] == list_edge[y][1] and list_edge[i][1] == list_edge[y][0]:
-                print(i, y)
                 return False
     return True
 
