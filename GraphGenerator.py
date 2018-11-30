@@ -45,6 +45,8 @@ def writing_file_graph(name_file, list_node, list_edge):
         file.write(edge[0] + "\t" + edge[1] + "\t" + str(random.uniform(0, 1)) + "\n")
     file.close()
 
+
+##### EXEC
 liste_id = node_generator(10)
 list_edge = create_edges(liste_id, 0.2)
 

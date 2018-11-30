@@ -1,3 +1,4 @@
+
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -11,4 +12,3 @@ G.nodes[1]['color'] = 'red'
 plt.show()
 #G.add_weighted_edges_from()
 a = G.nodes.data()
-print a.get(1)
