@@ -30,13 +30,17 @@ class GraphColor:
 
         # init the attributs of class
         for num_node in range(0, nb_nodes):
-            #print(len(list(self.__GraphStruct.neighbors(num_node))))
-            self.__listDeg.append(len(list(self.__graphStruct.neighbors(num_node))))
+            try :
+                self.__listDeg.append(len(list(self.__graphStruct.neighbors(num_node))))
+            except :
+                self.__listDeg.append(0)
+            #print(self.__listDeg[i])
+
 
         self.__minDeg = min(self.__listDeg)
         self.__maxDeg = max(self.__listDeg)
         self.__meanDeg = float(sum(self.__listDeg)) / len(self.__listDeg)
-        #print(self.__minDeg, self.__maxDeg, self.__meanDeg)
+        print(self.__minDeg, self.__maxDeg, self.__meanDeg)
         self.__density = nb_edges / float((nb_nodes * (nb_nodes - 1) / 2))
         if self.__minDeg > 0:
             self.__connected = True
@@ -51,6 +55,6 @@ class GraphColor:
     def __eq__(self, obj):
         return False
 
-MyGraph = GraphColor("testgraph.txt")
+MyGraph = GraphColor("net50k001.txt")
 
 # TODO: implementer methode MCMC
