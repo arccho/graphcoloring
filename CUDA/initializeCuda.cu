@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <cuda.h>
 #include <curand.h>
 #include <curand_kernel.h>
@@ -16,10 +17,10 @@ extern "C" {
   }
 
   __global__ void initCurand(curandState* states, uint32_t seed, uint32_t nElem ) {
-	uint32_t tid = threadIdx.x + blockDim.x * blockIdx.x;
-	if (tid < nElem) {
-		curand_init( seed, tid, 0, &states[tid] );
-	}
+	//uint32_t tid = threadIdx.x + blockDim.x * blockIdx.x;
+	//if (tid < nElem) {
+	//	curand_init( seed, tid, 0, &states[tid] );
+	//}
 }
 
 
