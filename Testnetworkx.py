@@ -8,6 +8,8 @@ plt.subplot(111)
 
 nx.draw(G, with_labels=True, font_weight='bold')
 
+print(list(G.neighbors(2)))
+
 G.nodes[1]['color'] = 'red'
 plt.show()
 #G.add_weighted_edges_from()

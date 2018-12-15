@@ -33,10 +33,6 @@ def check_unique_edge(list_edge):
     return True
 
 def writing_file_graph(name_file, list_node, list_edge):
-    if not check_unique_nodes(list_node):
-        raise Exception("Error, nodes duplicate")
-    if not check_unique_edge(list_edge):
-        print("Error edges duplicate")
 
     file = open(name_file, "wt")
 

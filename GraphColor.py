@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 class GraphColor:
 
     def __init__(self, graph_file):
-        self.__graphStruct = nx.Graph()
-        self.__connected = False
-        self.__listDeg = list()
-        self.__minDeg = 0
-        self.__maxDeg = 0
-        self.__meanDeg = 0.0
-        self.__density = 0.0
+        self.graphStruct = nx.Graph()
+        self.connected = False
+        self.listDeg = list()
+        self.minDeg = 0
+        self.maxDeg = 0
+        self.meanDeg = 0.0
+        self.density = 0.0
 
         #init the graph
         self.__initialisze_GraphStruct(graph_file)
@@ -26,24 +26,24 @@ class GraphColor:
         #fill the graph
         for i in range(0, nb_edges):
             #print(nodes.index(source[i]), nodes.index(destination[i]))
-            self.__graphStruct.add_edge(nodes.index(source[i]), nodes.index(destination[i]))
+            self.graphStruct.add_edge(nodes.index(source[i]), nodes.index(destination[i]))
 
         # init the attributs of class
         for num_node in range(0, nb_nodes):
             try :
-                self.__listDeg.append(len(list(self.__graphStruct.neighbors(num_node))))
+                self.listDeg.append(len(list(self.graphStruct.neighbors(num_node))))
             except :
-                self.__listDeg.append(0)
+                self.listDeg.append(0)
             #print(self.__listDeg[i])
 
 
-        self.__minDeg = min(self.__listDeg)
-        self.__maxDeg = max(self.__listDeg)
-        self.__meanDeg = float(sum(self.__listDeg)) / len(self.__listDeg)
-        print(self.__minDeg, self.__maxDeg, self.__meanDeg)
-        self.__density = nb_edges / float((nb_nodes * (nb_nodes - 1) / 2))
-        if self.__minDeg > 0:
-            self.__connected = True
+        self.minDeg = min(self.listDeg)
+        self.maxDeg = max(self.listDeg)
+        self.meanDeg = float(sum(self.listDeg)) / len(self.listDeg)
+        self.density = nb_edges*2 / float((nb_nodes * (nb_nodes - 1) / 2))
+        if self.minDeg > 0:
+            self.connected = True
+        print(self.minDeg, self.maxDeg, self.meanDeg, self.density, self.connected)
 
 
     def __repr__(self):
@@ -54,7 +54,3 @@ class GraphColor:
 
     def __eq__(self, obj):
         return False
-
-MyGraph = GraphColor("net50k001.txt")
-
-# TODO: implementer methode MCMC
