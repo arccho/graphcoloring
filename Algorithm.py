@@ -1,10 +1,6 @@
 from GraphColor import *
 import pycuda.driver as cuda
-import pycuda.compiler
-import pycuda.gpuarray as gpuarray
-import pycuda.autoinit
-import pycuda.curandom
-from pycuda import characterize
+from pycuda import characterize, gpuarray, compiler, autoinit, curandom
 from pycuda.characterize import sizeof
 from pycuda.compiler import SourceModule
 import numpy as np
@@ -14,15 +10,14 @@ MyGraph = GraphColor("net50k001.txt")
 
 # TODO: implementer methode MCMC
 
-g = pycuda.curandom.XORWOWRandomNumberGenerator()
+g = curandom.XORWOWRandomNumberGenerator()
 nb_nodes = MyGraph.graphStruct.number_of_nodes()
 nb_edges = MyGraph.graphStruct.number_of_edges()
 seed = int(time.time())
 
 threadPerBlock = (32, 1, 1)
 BlockPerGrid = ((nb_nodes + threadPerBlock[0] - 1)/threadPerBlock[0], 1, 1)
-rand_states = cuda.mem_alloc(nb_nodes*characterize.sizeof('curandStateXORWOW', '#include <curand_kernel.h>'))
-
+rand_states = cuda.mem_alloc(nb_nodes*characterize.sizeof('curandState', '#include <curand_kernel.h>'))
 with open('CUDA/initializeCuda.cu', 'r') as myfile:
     cuda_code = myfile.read()
 
@@ -70,7 +65,8 @@ print "TOTAL: " + str(tot) + " bytes"
 
 ###############################################################
 #Cuda Allocation
-coloring_d = cuda.mem_alloc(nb_nodes * sizeof_uint32)
+#coloring_d = cuda.mem_alloc(nb_nodes * sizeof_uint32)
+coloring_d = gpuarray.zeros(nb_nodes * sizeof_uint32, np.uint32)
 starColoring_d = cuda.mem_alloc(nb_nodes * sizeof_uint32)
 q_h = np.zeros(nb_nodes * sizeof_float, dtype=np.float32)
 q_d = cuda.mem_alloc(nb_nodes * sizeof_float)
@@ -114,6 +110,13 @@ resultsFile.write("lambda: " + str(p_lambda) + "\n")
 resultsFile.write("ratioFreezed: " + str(p_ratioFreezed) + "\n")
 resultsFile.write("maxRip: " + str(p_maxRip) + "\n")
 #endif // WRITE
+
+####################################################################
+#run algorithm MCMC
+
+func_initColoring = mod.get_function("initColoring")
+func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_states, np.uint32(seed), block=threadsPerBlock, grid=blocksPerGrid, time_kernel = True)
+print coloring_d.get()
 
 
 
