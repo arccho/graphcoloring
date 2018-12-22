@@ -66,15 +66,15 @@ print "TOTAL: " + str(tot) + " bytes"
 ###############################################################
 #Cuda Allocation
 #coloring_d = cuda.mem_alloc(nb_nodes * sizeof_uint32)
-coloring_d = gpuarray.zeros(nb_nodes * sizeof_uint32, np.uint32)
-starColoring_d = cuda.mem_alloc(nb_nodes * sizeof_uint32)
-q_h = np.zeros(nb_nodes * sizeof_float, dtype=np.float32)
-q_d = cuda.mem_alloc(nb_nodes * sizeof_float)
-qStar_h = np.zeros(nb_nodes * sizeof_float, dtype=np.float32)
-qStar_d = cuda.mem_alloc(nb_nodes * sizeof_float)
-conflictCounter_h = np.zeros(nb_edges * sizeof_uint32, dtype=np.uint32)
-conflictCounter_d = cuda.mem_alloc(nb_edges * sizeof_uint32)
-colorsChecker_d = cuda.mem_alloc(nb_edges * p_nb_col * sizeof_bool)
+coloring_d = gpuarray.zeros(nb_nodes, np.uint32)
+starColoring_d = gpuarray.zeros(nb_nodes, np.uint32)
+q_h = np.zeros(nb_nodes, dtype=np.float32)
+q_d = gpuarray.zeros(nb_nodes, np.float32)
+qStar_h = np.zeros(nb_nodes, dtype=np.float32)
+qStar_d = gpuarray.zeros(nb_nodes, np.float32)
+conflictCounter_h = np.zeros(nb_edges, dtype=np.uint32)
+conflictCounter_d = gpuarray.zeros(nb_edges, np.uint32)
+colorsChecker_d = gpuarray.zeros(nb_edges, np.bool)
 #print "colorsChecker_d: " + str(nb_nodes * p_nb_col * sizeof_bool)
 
 #ifdef STANDARD
@@ -112,11 +112,21 @@ resultsFile.write("maxRip: " + str(p_maxRip) + "\n")
 #endif // WRITE
 
 ####################################################################
-#run algorithm MCMC
+#initialiser les couleurs des nb_nodes
 
 func_initColoring = mod.get_function("initColoring")
 func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_states, np.uint32(seed), block=threadsPerBlock, grid=blocksPerGrid, time_kernel = True)
 print coloring_d.get()
+
+#####################################################################
+#run algorithm MCMC
+
+rip = 0
+
+while (rip < p_maxRip):
+    rip = rip + 1
+    func_conflictChecker = mod.get_function("conflictChecker")
+    func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.directed_edges)
 
 
 

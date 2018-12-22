@@ -1,5 +1,7 @@
 from ParseFile import parsefile
 import networkx as nx
+import pycuda.driver as cuda
+from pycuda.characterize import sizeof
 import matplotlib.pyplot as plt
 
 class GraphColor:
@@ -13,11 +15,18 @@ class GraphColor:
         self.meanDeg = 0.0
         self.density = 0.0
 
+        self.node_source = list()
+        self.node_destination = list()
+        self.edges = list()
+
+        #GPU
+        self.cuda_edges = 0
+
         #init the graph
-        self.__initialisze_GraphStruct(graph_file)
+        self.__initialize_GraphStruct(graph_file)
 
     #Initialize the graph structure
-    def __initialisze_GraphStruct(self, graph_file):
+    def __initialize_GraphStruct(self, graph_file):
 
         #Parse a file and return his properties: nb of nodes, nb of edges, the list of nodes, the list of source-destination (= edges)
         # and the weight of each edge
@@ -25,16 +34,25 @@ class GraphColor:
 
         #fill the graph
         for i in range(0, nb_edges):
-            #print(nodes.index(source[i]), nodes.index(destination[i]))
-            self.graphStruct.add_edge(nodes.index(source[i]), nodes.index(destination[i]))
+            self.node_source.append(nodes.index(source[i]))
+            self.node_destination.append(nodes.index(destination[i]))
+            self.graphStruct.add_edge(self.node_source[i], self.node_destination[i])
 
-        # init the attributs of class
-        for num_node in range(0, nb_nodes):
-            try :
-                self.listDeg.append(len(list(self.graphStruct.neighbors(num_node))))
-            except :
-                self.listDeg.append(0)
-            #print(self.__listDeg[i])
+        self.edges = list()
+        self.listDeg = [0] * nb_nodes
+        for num_node in self.node_source:
+            self.listDeg[num_node] = len(list(self.graphStruct.neighbors(num_node)))
+
+        for num_node in self.node_destination:
+            self.listDeg[num_node] = len(list(self.graphStruct.neighbors(num_node)))
+
+
+        for index in range(len(self.node_source)):
+            if self.node_source[index] < self.node_destination[index]:
+                self.edges.append(self.node_source[index])
+                self.edges.append(self.node_destination[index])
+
+
 
 
         self.minDeg = min(self.listDeg)
@@ -44,6 +62,9 @@ class GraphColor:
         if self.minDeg > 0:
             self.connected = True
         print(self.minDeg, self.maxDeg, self.meanDeg, self.density, self.connected)
+
+        #self.directed_edges = cuda.mem_alloc(self.directed_edges * sizeof("uint32_t", "#include <stdint.h>"))
+
 
 
     def __repr__(self):

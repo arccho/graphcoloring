@@ -23,5 +23,7 @@ def parsefile(name_file):
     #union of source + destination = list of nodes
     nodes = set(source)
     nodes |= set(destination)
+    nodes = list(nodes)
+    nodes.sort()
 
-    return int(nb_nodes), int(nb_edges), list(nodes), source, destination, weight
+    return int(nb_nodes), int(nb_edges), nodes, source, destination, weight
