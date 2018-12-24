@@ -18,7 +18,7 @@ seed = int(time.time())
 threadPerBlock = (32, 1, 1)
 BlockPerGrid = ((nb_nodes + threadPerBlock[0] - 1)/threadPerBlock[0], 1, 1)
 rand_states = cuda.mem_alloc(nb_nodes*characterize.sizeof('curandState', '#include <curand_kernel.h>'))
-with open('CUDA/initializeCuda.cu', 'r') as myfile:
+with open('CUDA/Cuda.cu', 'r') as myfile:
     cuda_code = myfile.read()
 
 mod= SourceModule(cuda_code, no_extern_c=True)
@@ -72,7 +72,7 @@ q_h = np.zeros(nb_nodes, dtype=np.float32)
 q_d = gpuarray.zeros(nb_nodes, np.float32)
 qStar_h = np.zeros(nb_nodes, dtype=np.float32)
 qStar_d = gpuarray.zeros(nb_nodes, np.float32)
-conflictCounter_h = np.zeros(nb_edges, dtype=np.uint32)
+conflictCounter_h = np.zeros(nb_edges)
 conflictCounter_d = gpuarray.zeros(nb_edges, np.uint32)
 colorsChecker_d = gpuarray.zeros(nb_edges, np.bool)
 #print "colorsChecker_d: " + str(nb_nodes * p_nb_col * sizeof_bool)
@@ -116,7 +116,6 @@ resultsFile.write("maxRip: " + str(p_maxRip) + "\n")
 
 func_initColoring = mod.get_function("initColoring")
 func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_states, np.uint32(seed), block=threadsPerBlock, grid=blocksPerGrid, time_kernel = True)
-print coloring_d.get()
 
 #####################################################################
 #run algorithm MCMC
@@ -125,12 +124,18 @@ rip = 0
 
 while (rip < p_maxRip):
     rip = rip + 1
+
     func_conflictChecker = mod.get_function("conflictChecker")
-    func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.directed_edges)
+    func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges, grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
 
+    #print conflictCounter_d.get()
+    func_sumReduction = mod.get_function("sumReduction")
+    func_sumReduction(np.uint32(nb_edges), conflictCounter_d, grid=blocksPerGrid_half_edges, block=threadsPerBlock, shared=(threadsPerBlock[0]*sizeof_uint32), time_kernel=True)
 
+    conflictCounter_h = conflictCounter_d.get()
 
-
-
+    conflictCounter = 0
+    for i in range(blocksPerGrid_half_edges[0]):
+        conflictCounter += conflictCounter_h[i]
 
 

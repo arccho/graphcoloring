@@ -4,7 +4,7 @@ import numpy
 from pycuda.compiler import SourceModule
 
 #ouvre un fichier et le charge dans un string
-with open('CUDA/initializeCuda.cu', 'r') as myfile:
+with open('CUDA/Cuda.cu', 'r') as myfile:
         cuda_code = myfile.read()
 
 #

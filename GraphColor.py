@@ -2,7 +2,9 @@ from ParseFile import parsefile
 import networkx as nx
 import pycuda.driver as cuda
 from pycuda.characterize import sizeof
+from pycuda import gpuarray
 import matplotlib.pyplot as plt
+import numpy as np
 
 class GraphColor:
 
@@ -19,11 +21,10 @@ class GraphColor:
         self.node_destination = list()
         self.edges = list()
 
-        #GPU
-        self.cuda_edges = 0
 
         #init the graph
         self.__initialize_GraphStruct(graph_file)
+        self.__initialize_GPU()
 
     #Initialize the graph structure
     def __initialize_GraphStruct(self, graph_file):
@@ -52,18 +53,17 @@ class GraphColor:
                 self.edges.append(self.node_source[index])
                 self.edges.append(self.node_destination[index])
 
-
-
-
         self.minDeg = min(self.listDeg)
         self.maxDeg = max(self.listDeg)
         self.meanDeg = float(sum(self.listDeg)) / len(self.listDeg)
-        self.density = nb_edges*2 / float((nb_nodes * (nb_nodes - 1) / 2))
+        self.density = len(self.edges) / float((nb_nodes * (nb_nodes - 1) / 2))
         if self.minDeg > 0:
             self.connected = True
         print(self.minDeg, self.maxDeg, self.meanDeg, self.density, self.connected)
 
-        #self.directed_edges = cuda.mem_alloc(self.directed_edges * sizeof("uint32_t", "#include <stdint.h>"))
+    def __initialize_GPU(self):
+        self.cuda_edges = gpuarray.to_gpu(np.array(self.edges))
+        self.cuda_listDeg = gpuarray.to_gpu(np.array(self.listDeg))
 
 
 
