@@ -138,4 +138,28 @@ while (rip < p_maxRip):
     for i in range(blocksPerGrid_half_edges[0]):
         conflictCounter += conflictCounter_h[i]
 
+    if conflictCounter == 0:
+        break
+
+
+    print "<<< Tentative numero: " + str(rip) + " >>>"
+    print "conflits relatifs: " + str(conflictCounter)
+
+    logFile.write("<<< Tentative numero: " + str(rip) + " >>>")
+    logFile.write("conflits relatifs: " + str(conflictCounter))
+
+    resultsFile .write("iteration " + str(rip))
+    resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter))
+
+    colorsChecker_d = gpuarray.zeros(nb_nodes * p_nb_col, np.bool)
+
+    orderedColors_d = gpuarray.zeros(nb_nodes * p_nb_col, np.uint32)
+
+
+
+
+
+
+
+
 
