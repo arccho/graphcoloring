@@ -111,7 +111,7 @@ extern "C" {
             conflictCounter_d[blockIdx.x] = sdata[0];
     }
 
-    __global__ void selectStarColoring(uint32_t nnodes, uint32_t * starColoring_d, float * qStar_d, col_sz nCol, uint32_t * coloring_d, node_sz * cumulDegs, node * neighs, bool * colorsChecker_d, uint32_t * orderedColors_d, curandState * states, float epsilon, uint32_t * statsFreeColors_d) {
+    __global__ void selectStarColoring(uint32_t nnodes, uint32_t * starColoring_d, float * qStar_d, col_sz nCol, uint32_t * coloring_d, node_sz * cumulDegs, node * neighs, bool * colorsChecker_d, uint32_t * orderedColors_d, curandState * states, float epsilon) {
 
         uint32_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -137,10 +137,6 @@ extern "C" {
             Zp -= 1 - colorsChecker[i];
         }
         Zp = nCol - Zn;
-
-    #ifdef STATS
-        statsFreeColors_d[idx] = Zp;
-    #endif // STATS
 
         if (!Zp)													//manage exception of no free colors
         {

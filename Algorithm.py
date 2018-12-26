@@ -145,15 +145,18 @@ while (rip < p_maxRip):
     print "<<< Tentative numero: " + str(rip) + " >>>"
     print "conflits relatifs: " + str(conflictCounter)
 
-    logFile.write("<<< Tentative numero: " + str(rip) + " >>>")
-    logFile.write("conflits relatifs: " + str(conflictCounter))
+    logFile.write("<<< Tentative numero: " + str(rip) + " >>>\n")
+    logFile.write("conflits relatifs: " + str(conflictCounter) + "\n")
 
-    resultsFile .write("iteration " + str(rip))
-    resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter))
+    resultsFile .write("iteration " + str(rip) + "\n")
+    resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter) + "\n")
 
     colorsChecker_d = gpuarray.zeros(nb_nodes * p_nb_col, np.bool)
-
     orderedColors_d = gpuarray.zeros(nb_nodes * p_nb_col, np.uint32)
+
+    func_selectStarColoring = mod.get_function("selectStarColoring")
+    func_selectStarColoring(np.uint32(nb_nodes), starColoring_d, qStar_d, np.uint32(p_nb_col), coloring_d, MyGraph.cuda_listCumulDeg, MyGraph.cuda_listNeighbors, colorsChecker_d, orderedColors_d, rand_states, np.uint32(p_epsilon), grid=blocksPerGrid, block=threadsPerBlock)
+
 
 
 

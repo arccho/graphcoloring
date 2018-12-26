@@ -12,6 +12,7 @@ class GraphColor:
         self.graphStruct = nx.Graph()
         self.connected = False
         self.listDeg = list()
+        self.cumulDeg = list()
         self.minDeg = 0
         self.maxDeg = 0
         self.meanDeg = 0.0
@@ -24,10 +25,13 @@ class GraphColor:
 
         #init the graph
         self.__initialize_GraphStruct(graph_file)
-        self.__initialize_GPU()
 
     #Initialize the graph structure
     def __initialize_GraphStruct(self, graph_file):
+
+        ###################################
+        ##########   PART CPU    ##########
+        ###################################
 
         #Parse a file and return his properties: nb of nodes, nb of edges, the list of nodes, the list of source-destination (= edges)
         # and the weight of each edge
@@ -52,6 +56,7 @@ class GraphColor:
             if self.node_source[index] < self.node_destination[index]:
                 self.edges.append(self.node_source[index])
                 self.edges.append(self.node_destination[index])
+        #print self.edges
 
         self.minDeg = min(self.listDeg)
         self.maxDeg = max(self.listDeg)
@@ -61,9 +66,30 @@ class GraphColor:
             self.connected = True
         print(self.minDeg, self.maxDeg, self.meanDeg, self.density, self.connected)
 
-    def __initialize_GPU(self):
+        ###################################
+        ##########   PART GPU    ##########
+        ###################################
+
+        #list of all edges
         self.cuda_edges = gpuarray.to_gpu(np.array(self.edges))
-        self.cuda_listDeg = gpuarray.to_gpu(np.array(self.listDeg))
+
+        #Cumul list of neighbors numbers for all nodes
+        temp = list(self.listDeg)
+        temp.insert(0, 0)
+        self.cuda_listCumulDeg = gpuarray.to_gpu(np.cumsum(temp))
+        #print self.cuda_listCumulDeg.get()
+
+        #List of all neighbors. We can find all neighbors of each node in this list in using listCumulDeg
+        #Example: for node 3:  listCumulDeg[3] return the index of his neighbors in listNeihbors
+        #We know the number of neighbors with (listDeg[3]) or (listCumulDeg[3] - listCumulDeg[3-1])
+        temp = list()
+        for num_node in range(len(nodes)):
+            neighbors_of_node = list(self.graphStruct.neighbors(num_node))
+            neighbors_of_node.sort()
+            temp.extend(neighbors_of_node)
+        self.cuda_listNeighbors = gpuarray.to_gpu(np.array(temp))
+        #print self.cuda_listNeighbors.get()
+
 
 
 
