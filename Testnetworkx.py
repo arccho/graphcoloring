@@ -14,3 +14,4 @@ G.nodes[1]['color'] = 'red'
 plt.show()
 #G.add_weighted_edges_from()
 a = G.nodes.data()
+

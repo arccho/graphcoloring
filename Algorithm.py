@@ -6,13 +6,14 @@ from pycuda.compiler import SourceModule
 import numpy as np
 import time
 
-MyGraph = GraphColor("net50k001.txt")
+#MyGraph = GraphColor("net50k001.txt") #OK
+MyGraph = GraphColor("testgraph100.txt") #PAS OK
 
-# TODO: implementer methode MCMC
 
-g = curandom.XORWOWRandomNumberGenerator()
-nb_nodes = MyGraph.graphStruct.number_of_nodes()
-nb_edges = MyGraph.graphStruct.number_of_edges()
+#nb_nodes = MyGraph.graphStruct.number_of_nodes()
+#nb_edges = MyGraph.graphStruct.number_of_edges()
+nb_nodes = MyGraph.nb_nodes
+nb_edges = MyGraph.nb_edges
 seed = int(time.time())
 
 threadPerBlock = (32, 1, 1)
@@ -23,7 +24,7 @@ with open('CUDA/Cuda.cu', 'r') as myfile:
 
 mod= SourceModule(cuda_code, no_extern_c=True)
 func_initCurand = mod.get_function("initCurand")
-func_initCurand(rand_states, np.uint32(seed), np.uint32(nb_nodes), block=threadPerBlock, grid=BlockPerGrid, time_kernel = True)
+func_initCurand(rand_states, np.uint32(seed), np.uint32(nb_nodes), block=threadPerBlock, grid=BlockPerGrid, time_kernel=True)
 
 #params
 p_nb_col = MyGraph.maxDeg
@@ -36,8 +37,8 @@ p_numThreads = 32
 
 #configuration grille
 threadsPerBlock = (p_numThreads, 1, 1)
-blocksPerGrid = ((nb_nodes + p_numThreads -1)/ p_numThreads, 1,1)
-blocksPerGrid_nCol = ((p_nb_col + threadsPerBlock[0] -1)/threadsPerBlock[0], 1, 1)
+blocksPerGrid = ((nb_nodes + p_numThreads - 1) / p_numThreads, 1, 1)
+blocksPerGrid_nCol = ((p_nb_col + threadsPerBlock[0] - 1)/threadsPerBlock[0], 1, 1)
 blocksPerGrid_half = (((nb_nodes / 2) + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
 blocksPerGrid_edges = ((nb_edges + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
 blocksPerGrid_half_edges = (((nb_edges / 2) + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
@@ -82,7 +83,7 @@ orderedColors_d = cuda.mem_alloc(nb_nodes * p_nb_col * sizeof_uint32)
 #endif // STANDARD
 
 free_mem, tot_mem = cuda.mem_get_info()
-print "total mem: " + str(tot_mem) + " free mem: " + str(free_mem)
+print "total memory: " + str(tot_mem) + " free memory: " + str(free_mem)
 
 #ifdef PRINTS
 print "ColoringMCMC GPU"
@@ -122,6 +123,9 @@ func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_st
 
 rip = 0
 
+#print "Couleurs des sommets initial: "
+#print coloring_d.get()
+
 while (rip < p_maxRip):
     rip = rip + 1
 
@@ -155,9 +159,18 @@ while (rip < p_maxRip):
     orderedColors_d = gpuarray.zeros(nb_nodes * p_nb_col, np.uint32)
 
     func_selectStarColoring = mod.get_function("selectStarColoring")
-    func_selectStarColoring(np.uint32(nb_nodes), starColoring_d, qStar_d, np.uint32(p_nb_col), coloring_d, MyGraph.cuda_listCumulDeg, MyGraph.cuda_listNeighbors, colorsChecker_d, orderedColors_d, rand_states, np.uint32(p_epsilon), grid=blocksPerGrid, block=threadsPerBlock)
+    func_selectStarColoring(np.uint32(nb_nodes), starColoring_d, qStar_d, np.uint32(p_nb_col), coloring_d, MyGraph.cuda_listCumulDeg, MyGraph.cuda_listNeighbors, colorsChecker_d, orderedColors_d, rand_states, np.uint32(p_epsilon), grid=blocksPerGrid, block=threadsPerBlock, time_kernel=True)
 
+    temp = coloring_d
+    coloring_d = starColoring_d
+    starColoring_d = temp
 
+    print coloring_d.get()
+
+#fin algorithme
+
+#print "Couleurs des sommets final: "
+#print coloring_d.get()
 
 
 

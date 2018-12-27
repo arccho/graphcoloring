@@ -7,13 +7,14 @@ def node_generator(number_id, size=12):
     list_nodes = []
     for x in range(number_id):
         list_nodes.append(''.join(random.choice(alphanum) for _ in range(size)))
+    list_nodes.sort()
     return list_nodes
 
 def create_edges(list_nodes, prob_edge):
     list_edge = []
     for i in list_nodes:
         for j in list_nodes:
-            if i != j:
+            if i != j and (j, i) not in list_edge:
                 if numpy.random.choice((True, False), p=[prob_edge, 1-prob_edge]) == True:
                     list_edge.append((i, j))
     return list_edge
@@ -43,7 +44,7 @@ def writing_file_graph(name_file, list_node, list_edge):
 
 
 ##### EXEC
-liste_id = node_generator(10)
+liste_id = node_generator(100)
 list_edge = create_edges(liste_id, 0.2)
 
-writing_file_graph("testgraph.txt", liste_id, list_edge)
+writing_file_graph("testgraph100.txt", liste_id, list_edge)

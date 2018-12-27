@@ -11,7 +11,13 @@ def parsefile(name_file):
     if content is not False:
 
         line_content = content.split("\n")
-        nb_nodes, nb_edges = line_content[0].split('\t')
+        nb_nodes = 0
+        nb_edges = 0
+        try:
+            nb_nodes, nb_edges = line_content[0].split('\t')
+        except:
+            nb_nodes, nb_edges = line_content[0].split(' ')
+
         del line_content[0]
         for line in line_content:
             if len(line)>0:
