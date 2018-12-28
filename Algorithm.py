@@ -7,11 +7,9 @@ import numpy as np
 import time
 
 #MyGraph = GraphColor("net50k001.txt") #OK
-MyGraph = GraphColor("testgraph100.txt") #PAS OK
+#MyGraph = GraphColor("testgraph100.txt") #OK
+MyGraph = GraphColor("testgraph500.txt") #OK
 
-
-#nb_nodes = MyGraph.graphStruct.number_of_nodes()
-#nb_edges = MyGraph.graphStruct.number_of_edges()
 nb_nodes = MyGraph.nb_nodes
 nb_edges = MyGraph.nb_edges
 seed = int(time.time())
@@ -66,21 +64,11 @@ print "TOTAL: " + str(tot) + " bytes"
 
 ###############################################################
 #Cuda Allocation
-#coloring_d = cuda.mem_alloc(nb_nodes * sizeof_uint32)
 coloring_d = gpuarray.zeros(nb_nodes, np.uint32)
 starColoring_d = gpuarray.zeros(nb_nodes, np.uint32)
-q_h = np.zeros(nb_nodes, dtype=np.float32)
-q_d = gpuarray.zeros(nb_nodes, np.float32)
-qStar_h = np.zeros(nb_nodes, dtype=np.float32)
 qStar_d = gpuarray.zeros(nb_nodes, np.float32)
 conflictCounter_h = np.zeros(nb_edges)
 conflictCounter_d = gpuarray.zeros(nb_edges, np.uint32)
-colorsChecker_d = gpuarray.zeros(nb_edges, np.bool)
-#print "colorsChecker_d: " + str(nb_nodes * p_nb_col * sizeof_bool)
-
-#ifdef STANDARD
-orderedColors_d = cuda.mem_alloc(nb_nodes * p_nb_col * sizeof_uint32)
-#endif // STANDARD
 
 free_mem, tot_mem = cuda.mem_get_info()
 print "total memory: " + str(tot_mem) + " free memory: " + str(free_mem)
@@ -95,9 +83,9 @@ print "maxRip: " + str(p_maxRip)
 #endif // PRINTS
 
 #ifdef WRITE
-logFile = open(str(nb_nodes) + "-" + str(nb_edges) + "-logFile.txt" , "wt")
-resultsFile = open(str(nb_nodes) + "-" + str(nb_edges) + "-resultsFile.txt" , "wt")
-colorsFile = open(str(nb_nodes) + "-" + str(nb_edges) + "-colorsFile.txt" , "wt")
+logFile = open("Out/" + str(nb_nodes) + "-" + str(nb_edges) + "-logFile.txt" , "wt")
+resultsFile = open("Out/" + str(nb_nodes) + "-" + str(nb_edges) + "-resultsFile.txt" , "wt")
+colorsFile = open("Out/" + str(nb_nodes) + "-" + str(nb_edges) + "-colorsFile.txt" , "wt")
 
 logFile.write("nbCol: " + str(p_nb_col) + "\n")
 logFile.write("epsilon: " + str(p_epsilon) + "\n")
@@ -116,15 +104,23 @@ resultsFile.write("maxRip: " + str(p_maxRip) + "\n")
 #initialiser les couleurs des nb_nodes
 
 func_initColoring = mod.get_function("initColoring")
-func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_states, np.uint32(seed), block=threadsPerBlock, grid=blocksPerGrid, time_kernel = True)
+func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_states, block=threadsPerBlock, grid=blocksPerGrid, time_kernel = True)
 
 #####################################################################
 #run algorithm MCMC
 
 rip = 0
 
-#print "Couleurs des sommets initial: "
+print "Couleurs des sommets initial: "
+print coloring_d.get()
+
+############
+#np.set_printoptions(threshold=np.nan)
+#print "nb edges=" + str(nb_edges)
+#print conflictCounter_d.get()
 #print coloring_d.get()
+#print MyGraph.cuda_edges.get()
+#######################
 
 while (rip < p_maxRip):
     rip = rip + 1
@@ -145,7 +141,6 @@ while (rip < p_maxRip):
     if conflictCounter == 0:
         break
 
-
     print "<<< Tentative numero: " + str(rip) + " >>>"
     print "conflits relatifs: " + str(conflictCounter)
 
@@ -165,12 +160,11 @@ while (rip < p_maxRip):
     coloring_d = starColoring_d
     starColoring_d = temp
 
-    print coloring_d.get()
 
 #fin algorithme
 
-#print "Couleurs des sommets final: "
-#print coloring_d.get()
+print "Couleurs des sommets final: "
+print coloring_d.get()
 
 
 

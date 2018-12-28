@@ -1,15 +1,10 @@
 from ParseFile import parsefile
-#import networkx as nx
-import pycuda.driver as cuda
-from pycuda.characterize import sizeof
 from pycuda import gpuarray
-import matplotlib.pyplot as plt
 import numpy as np
 
 class GraphColor:
 
     def __init__(self, graph_file):
-        #self.graphStruct = nx.Graph()
         self.connected = False
         self.listDeg = list()
         self.cumulDeg = list()
@@ -47,18 +42,10 @@ class GraphColor:
         for i in range(0, nb_edges):
             self.node_source.append(nodes.index(source[i]))
             self.node_destination.append(nodes.index(destination[i]))
-            #self.graphStruct.add_edge(self.node_source[i], self.node_destination[i])
-
-        self.edges = list()
-        self.listDeg = [0] * nb_nodes
-        #for num_node in self.node_source:
-            #self.listDeg[num_node] = len(list(self.graphStruct.neighbors(num_node)))
-
-        #for num_node in self.node_destination:
-            #self.listDeg[num_node] = len(list(self.graphStruct.neighbors(num_node)))
 
         #list of all neighbors of all nodes
         self.listNeighbors = list()
+        self.listDeg = [0] * nb_nodes
         for num_node in range(nb_nodes):
             self.listNeighbors.append([])
             for index in range(len(self.node_source)):
@@ -70,11 +57,18 @@ class GraphColor:
             self.listDeg[num_node] = len(self.listNeighbors[num_node])
         #print self.listDeg
 
+        #Cumul list of neighbors numbers for all nodes
+        temp = list(self.listDeg)
+        temp.insert(0, 0)
+        self.cumulDeg = np.cumsum(temp)
+        #print self.cumulDeg
+
         #Edges in single list
-        for index in range(len(self.node_source)):
-            if self.node_source[index] < self.node_destination[index]:
-                self.edges.append(self.node_source[index])
-                self.edges.append(self.node_destination[index])
+        for i in range(nb_nodes):
+            for j in self.listNeighbors[i]:
+                if i < j:
+                    self.edges.append(i)
+                    self.edges.append(j)
         #print self.edges
 
         self.minDeg = min(self.listDeg)
@@ -93,23 +87,12 @@ class GraphColor:
         #list of all edges
         self.cuda_edges = gpuarray.to_gpu(np.array(self.edges))
 
-        #Cumul list of neighbors numbers for all nodes
-        temp = list(self.listDeg)
-        temp.insert(0, 0)
-        self.cuda_listCumulDeg = gpuarray.to_gpu(np.cumsum(temp))
+        self.cuda_listCumulDeg = gpuarray.to_gpu(self.cumulDeg)
         #print self.cuda_listCumulDeg.get()
 
         #List of all neighbors. We can find all neighbors of each node in this list in using listCumulDeg
         #Example: for node 3:  listCumulDeg[3] return the index of his neighbors in listNeihbors
         #We know the number of neighbors with (listDeg[3]) or (listCumulDeg[3] - listCumulDeg[3-1])
-        # temp = list()
-        # for num_node in range(len(nodes)):
-        #     neighbors_of_node = list(self.graphStruct.neighbors(num_node))
-        #     print neighbors_of_node
-        #     neighbors_of_node.sort()
-        #     temp.extend(neighbors_of_node)
-        # self.cuda_listNeighbors = gpuarray.to_gpu(np.array(temp))
-        # #print self.cuda_listNeighbors.get()
         temp = list()
         for list_neighbors in self.listNeighbors:
             #print list_neighbors

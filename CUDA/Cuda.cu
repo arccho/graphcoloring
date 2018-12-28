@@ -14,12 +14,12 @@ extern "C" {
     __global__ void initCurand(curandState* states, uint32_t seed, uint32_t nElem ) {
 	    uint32_t tid = threadIdx.x + blockDim.x * blockIdx.x;
 	    if (tid < nElem) {
-	        states[tid] = curandState();
+	        //states[tid] = curandState();
 	        curand_init( seed, tid, 0, &states[tid] );
 	    }
     }
 
-    __global__ void initColoring(uint32_t nnodes, uint32_t * coloring_d, float nCol, curandState * states, uint32_t seed) {
+    __global__ void initColoring(uint32_t nnodes, uint32_t * coloring_d, float nCol, curandState * states) {
 
 	    uint32_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -35,7 +35,7 @@ extern "C" {
 	    //coloring_d[idx] = 0;
     }
 
-    __global__ void conflictChecker(uint32_t nedges, uint32_t * conflictCounter_d, uint32_t * coloring_d, uint32_t * edges) {
+    __global__ void conflictChecker(uint32_t nedges, uint32_t * conflictCounter_d, uint32_t * coloring_d, node_sz * edges) {
 
         uint32_t idx = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -124,8 +124,9 @@ extern "C" {
         uint32_t nodeCol = coloring_d[idx];							//node color
 
         bool * colorsChecker = &(colorsChecker_d[idx * nCol]);		//array used to set to 1 or 0 the colors occupied from the neighbors
-        for (int i = 0; i < nneighs; i++)
+        for (int i = 0; i < nneighs; i++) {
             colorsChecker[coloring_d[neighs[index + i]]] = 1;
+        }
 
         uint32_t * orderedColors = &(orderedColors_d[idx * nCol]);	//array containing previously occupied colors and then free ones
         uint32_t Zp = nCol, Zn = 0;									//number of free colors (p) and occupied colors (n)
@@ -152,6 +153,7 @@ extern "C" {
         }
 
         float randnum = curand_uniform(&states[idx]);				//random number
+
 
         float threshold;
         uint32_t selectedIndex = 0;									//selected index for orderedColors to select the new color
