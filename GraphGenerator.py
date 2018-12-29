@@ -1,9 +1,11 @@
 import random
-import numpy
 from collections import Counter
+from sys import stdout
+import time as tm
 
 
 def node_generator(number_id, size=12):
+
     alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     list_nodes = []
     for x in range(number_id):
@@ -15,16 +17,30 @@ def node_generator(number_id, size=12):
 
 def create_edges(list_nodes, prob_edge):
 
-    list_edge = list()
+    percent = 0
+    counter = 0
+    max_edges = 0
     nb_nodes = len(list_nodes)
+    for i in range(1, nb_nodes):
+        max_edges += nb_nodes - i
+
+    list_edge = list()
     for i in range(nb_nodes-1):
         for j in range(i+1, nb_nodes):
-            if numpy.random.choice((True, False), p=[prob_edge, 1-prob_edge]):
+            if random.random() <= prob_edge:
                 list_edge.append((list_nodes[i], list_nodes[j]))
+        counter += nb_nodes - i + 1
+        current_percent = int((float(counter) / float(max_edges)) * 100)
+        if current_percent != percent:
+            percent = current_percent
+            stdout.write("\r%d%% generated" % percent)
+            stdout.flush()
+    stdout.write("\n")
     return list_edge
 
 
 def check_unique_nodes(list_node):
+
     counter = Counter(list_node)
     for values in counter.itervalues():
         if values > 1:
@@ -42,20 +58,24 @@ def check_unique_edge(list_edge):
 
 
 def writing_file_graph(name_file, list_node, list_edge):
-
+    print "writing graph in file " + name_file
     file = open(name_file, "wt")
 
     file.write(str(len(list_node)) + "\t" + str(len(list_edge)) + "\n")
     for edge in list_edge:
         file.write(edge[0] + "\t" + edge[1] + "\t" + str(random.uniform(0, 1)) + "\n")
     file.close()
+    print "finished"
 
 
 ##################################
 ###########     EXEC    ##########
 ##################################
 
-liste_id = node_generator(10000)
-list_edge = create_edges(liste_id, 0.01)
+tStart = tm.time()
 
-writing_file_graph("testgraph10000.txt", liste_id, list_edge)
+liste_id = node_generator(100000)
+list_edge = create_edges(liste_id, 0.005)
+writing_file_graph("Graph/testgraph100000.txt", liste_id, list_edge)
+
+print('Time: %.1f s' %(tm.time() - tStart))

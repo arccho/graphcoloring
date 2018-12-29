@@ -1,7 +1,0 @@
-nbCol: 9
-epsilon: 1e-08
-lambda: 0.01
-ratioFreezed: 0.01
-maxRip: 250
-iteration 1
-iteration_1_conflits 10

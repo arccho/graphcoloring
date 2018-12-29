@@ -6,10 +6,10 @@ from pycuda.compiler import SourceModule
 import numpy as np
 import time
 
-#MyGraph = GraphColor("net50k001.txt") #OK
-#MyGraph = GraphColor("testgraph100.txt") #OK
-#MyGraph = GraphColor("testgraph500.txt") #OK
-#MyGraph = GraphColor("testgraph1000.txt") #OK
+#MyGraph = GraphColor("Graph/net50k001.txt") #OK
+#MyGraph = GraphColor("Graph/testgraph100.txt") #OK
+#MyGraph = GraphColor("Graph/testgraph500.txt") #OK
+MyGraph = GraphColor("Graph/testgraph1000.txt") #OK
 
 nb_nodes = MyGraph.nb_nodes
 nb_edges = MyGraph.nb_edges

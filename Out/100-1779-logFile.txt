@@ -1,9 +1,0 @@
-nbCol: 51
-epsilon: 1e-08
-lambda: 0.01
-ratioFreezed: 0.01
-maxRip: 250
-<<< Tentative numero: 1 >>>
-conflits relatifs: 22
-<<< Tentative numero: 2 >>>
-conflits relatifs: 5
