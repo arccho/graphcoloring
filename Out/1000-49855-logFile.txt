@@ -1,0 +1,13 @@
+nbCol: 130
+epsilon: 1e-08
+lambda: 0.01
+ratioFreezed: 0.01
+maxRip: 250
+<<< Tentative numero: 1 >>>
+conflits relatifs: 410
+<<< Tentative numero: 2 >>>
+conflits relatifs: 141
+<<< Tentative numero: 3 >>>
+conflits relatifs: 19
+<<< Tentative numero: 4 >>>
+conflits relatifs: 1

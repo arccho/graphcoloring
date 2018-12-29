@@ -1,0 +1,13 @@
+nbCol: 130
+epsilon: 1e-08
+lambda: 0.01
+ratioFreezed: 0.01
+maxRip: 250
+iteration 1
+iteration_1_conflits 410
+iteration 2
+iteration_2_conflits 141
+iteration 3
+iteration_3_conflits 19
+iteration 4
+iteration_4_conflits 1

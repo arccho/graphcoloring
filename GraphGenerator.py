@@ -13,15 +13,14 @@ def node_generator(number_id, size=12):
     return list_nodes
 
 
-#TODO: ameliorer le generateur d'arcs actuellement trop lent
 def create_edges(list_nodes, prob_edge):
 
     list_edge = list()
-    for i in list_nodes:
-        for j in list_nodes:
-            if i != j and (j, i) not in list_edge:
-                if numpy.random.choice((True, False), p=[prob_edge, 1-prob_edge]):
-                    list_edge.append((i, j))
+    nb_nodes = len(list_nodes)
+    for i in range(nb_nodes-1):
+        for j in range(i+1, nb_nodes):
+            if numpy.random.choice((True, False), p=[prob_edge, 1-prob_edge]):
+                list_edge.append((list_nodes[i], list_nodes[j]))
     return list_edge
 
 
@@ -56,7 +55,7 @@ def writing_file_graph(name_file, list_node, list_edge):
 ###########     EXEC    ##########
 ##################################
 
-liste_id = node_generator(500)
-list_edge = create_edges(liste_id, 0.1)
+liste_id = node_generator(10000)
+list_edge = create_edges(liste_id, 0.01)
 
-writing_file_graph("testgraph500.txt", liste_id, list_edge)
+writing_file_graph("testgraph10000.txt", liste_id, list_edge)
