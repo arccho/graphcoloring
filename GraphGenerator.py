@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from collections import Counter
 from sys import stdout
 import time as tm
@@ -28,8 +29,35 @@ def create_edges(list_nodes, prob_edge):
     for i in range(nb_nodes-1):
         for j in range(i+1, nb_nodes):
             if random.random() <= prob_edge:
-                list_edge.append((list_nodes[i], list_nodes[j]))
-        counter += nb_nodes - i + 1
+                list_edge.append((list_nodes[i], list_nodes[j], str(random.random())))
+        counter += nb_nodes - i - 1
+        current_percent = int((float(counter) / float(max_edges)) * 100)
+        if current_percent != percent:
+            percent = current_percent
+            stdout.write("\r%d%% generated" % percent)
+            stdout.flush()
+    stdout.write("\n")
+    return list_edge
+
+
+#slower than create_edgesv1
+def create_edgesv2(list_nodes, prob_edge):
+
+    percent = 0
+    counter = 0
+    max_edges = 0
+    nb_nodes = len(list_nodes)
+    for i in range(1, nb_nodes):
+        max_edges += nb_nodes - i
+    list_edge = list()
+    for i in range(nb_nodes-1):
+        array_rand = np.random.choice([True, False], size=(nb_nodes-i), p=[prob_edge, 1 - prob_edge])
+        index = 0
+        for j in range(i+1, nb_nodes):
+            if array_rand[index]:
+                list_edge.append((list_nodes[i], list_nodes[j], str(random.random())))
+            index += 1
+        counter += nb_nodes - i - 1
         current_percent = int((float(counter) / float(max_edges)) * 100)
         if current_percent != percent:
             percent = current_percent
@@ -63,10 +91,15 @@ def writing_file_graph(name_file, list_node, list_edge):
 
     file.write(str(len(list_node)) + "\t" + str(len(list_edge)) + "\n")
     for edge in list_edge:
-        file.write(edge[0] + "\t" + edge[1] + "\t" + str(random.uniform(0, 1)) + "\n")
+        file.write(edge[0] + "\t" + edge[1] + "\t" + edge[2] + "\n")
     file.close()
     print "finished"
 
+
+def create_graph(name_file, nb_nodes, prob_edge):
+    liste_id = node_generator(nb_nodes)
+    list_edge = create_edges(liste_id, prob_edge)
+    writing_file_graph("Graph/" + name_file + ".txt", liste_id, list_edge)
 
 ##################################
 ###########     EXEC    ##########
@@ -74,8 +107,6 @@ def writing_file_graph(name_file, list_node, list_edge):
 
 tStart = tm.time()
 
-liste_id = node_generator(100000)
-list_edge = create_edges(liste_id, 0.005)
-writing_file_graph("Graph/testgraph100000.txt", liste_id, list_edge)
+create_graph("30k", 30000, 0.01)
 
 print('Time: %.1f s' %(tm.time() - tStart))
