@@ -35,6 +35,11 @@ MANIFEST
 .idea/
 venv/
 
+#files and folder specific
+Out/
+Graph/
+*.pyc
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
