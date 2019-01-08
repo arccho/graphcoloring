@@ -24,7 +24,7 @@ def create_edges(list_nodes, prob_edge):
     nb_nodes = len(list_nodes)
     for i in range(1, nb_nodes):
         max_edges += nb_nodes - i
-
+    stdout.write("0% generated")
     list_edge = list()
     for i in range(nb_nodes-1):
         for j in range(i+1, nb_nodes):
@@ -50,6 +50,7 @@ def create_edgesv2(list_nodes, prob_edge):
     for i in range(1, nb_nodes):
         max_edges += nb_nodes - i
     list_edge = list()
+    stdout.write("0% generated")
     for i in range(nb_nodes-1):
         array_rand = np.random.choice([True, False], size=(nb_nodes-i), p=[prob_edge, 1 - prob_edge])
         index = 0
@@ -107,6 +108,6 @@ def create_graph(name_file, nb_nodes, prob_edge):
 
 tStart = tm.time()
 
-create_graph("30k", 30000, 0.01)
+create_graph("100k", 100000, 0.0005)
 
 print('Time: %.1f s' %(tm.time() - tStart))

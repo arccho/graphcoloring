@@ -1,3 +1,4 @@
+import numpy as np
 
 def parsefile(name_file):
     source = list()
@@ -32,4 +33,17 @@ def parsefile(name_file):
     nodes = list(nodes)
     nodes.sort()
 
-    return int(nb_nodes), int(nb_edges), nodes, source, destination, weight
+    #dictionary of nodes with the key, the string id of node and value its id number
+    dic_nodes = {}
+    for index in range(len(nodes)):
+        dic_nodes[nodes[index]] = index
+
+
+    #convert to numpy array => commente car plus lent
+    #len_id_node = str(len(source[0]))
+    #nodes = np.sort(np.array(nodes, dtype='|S' + len_id_node))
+    #source = np.array(source, dtype='|S' + len_id_node)
+    #destination = np.array(destination, dtype='|S' + len_id_node)
+    #weight = np.array(weight)
+
+    return int(nb_nodes), int(nb_edges), dic_nodes, source, destination, weight

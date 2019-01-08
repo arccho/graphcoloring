@@ -1,6 +1,7 @@
 from ParseFile import parsefile
 from pycuda import gpuarray
 import numpy as np
+import time as tm
 
 class GraphColor:
 
@@ -27,25 +28,35 @@ class GraphColor:
     #Initialize the graph structure
     def __initialize_GraphStruct(self, graph_file):
 
+        tStart = tm.time()
         ###################################
         ##########   PART CPU    ##########
         ###################################
 
         #Parse a file and return his properties: nb of nodes, nb of edges, the list of nodes, the list of source-destination (= edges)
         # and the weight of each edge
-        nb_nodes, nb_edges, nodes, source, destination, weight = parsefile(graph_file)
+        print("parsing file ...")
+        nb_nodes, nb_edges, dic_nodes, source, destination, weight = parsefile(graph_file)
+        print("end parsing")
+        print('Time: %.1f s' % (tm.time() - tStart))
 
-        self.nb_nodes = len(nodes)
+        self.nb_nodes = len(dic_nodes)
         self.nb_edges = len(source)
 
         #fill the graph
+        tStart = tm.time()
+        print("start filling source and destination")
         for i in range(0, nb_edges):
-            self.node_source.append(nodes.index(source[i]))
-            self.node_destination.append(nodes.index(destination[i]))
+            self.node_source.append(dic_nodes[source[i]])
+            self.node_destination.append(dic_nodes[destination[i]])
+        print("end filling source and destination")
+        print('Time: %.1f s' % (tm.time() - tStart))
 
         #list of all neighbors of all nodes
         self.listNeighbors = list()
         self.listDeg = [0] * nb_nodes
+        tStart = tm.time()
+        print("start list of neighbors")
         for num_node in range(nb_nodes):
             self.listNeighbors.append([])
             for index in range(len(self.node_source)):
@@ -56,13 +67,21 @@ class GraphColor:
             #print self.listNeighbors[num_node]
             self.listDeg[num_node] = len(self.listNeighbors[num_node])
         #print self.listDeg
+        print("end list of neighbors")
+        print('Time: %.1f s' % (tm.time() - tStart))
 
         #Cumul list of neighbors numbers for all nodes
+        tStart = tm.time()
+        print("start cumul list of neighbors")
         temp = list(self.listDeg)
         temp.insert(0, 0)
         self.cumulDeg = np.cumsum(temp)
+        print("end cumul list of neighors")
+        print('Time: %.1f s' % (tm.time() - tStart))
         #print self.cumulDeg
 
+        tStart = tm.time()
+        print("start list of edges")
         #Edges in single list
         for i in range(nb_nodes):
             for j in self.listNeighbors[i]:
@@ -70,6 +89,8 @@ class GraphColor:
                     self.edges.append(i)
                     self.edges.append(j)
         #print self.edges
+        print("end list of edges")
+        print('Time: %.1f s' % (tm.time() - tStart))
 
         self.minDeg = min(self.listDeg)
         self.maxDeg = max(self.listDeg)

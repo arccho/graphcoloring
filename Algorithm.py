@@ -6,10 +6,10 @@ from pycuda.compiler import SourceModule
 import numpy as np
 import time
 
-#MyGraph = GraphColor("Graph/net50k001.txt") #OK
+MyGraph = GraphColor("Graph/net50k001.txt") #OK
 #MyGraph = GraphColor("Graph/testgraph100.txt") #OK
 #MyGraph = GraphColor("Graph/testgraph500.txt") #OK
-MyGraph = GraphColor("Graph/testgraph1000.txt") #OK
+#MyGraph = GraphColor("Graph/10k.txt") #OK
 
 nb_nodes = MyGraph.nb_nodes
 nb_edges = MyGraph.nb_edges
@@ -74,19 +74,17 @@ conflictCounter_d = gpuarray.zeros(nb_edges, np.uint32)
 free_mem, tot_mem = cuda.mem_get_info()
 print "total memory: " + str(tot_mem) + " free memory: " + str(free_mem)
 
-#ifdef PRINTS
+
 print "ColoringMCMC GPU"
 print "nbCol: " +str(p_nb_col)
 print "epsilon: " + str(p_epsilon)
 print "lambda: " + str(p_lambda)
 print "ratioFreezed: " + str(p_ratioFreezed)
 print "maxRip: " + str(p_maxRip)
-#endif // PRINTS
 
-#ifdef WRITE
+
 logFile = open("Out/" + str(nb_nodes) + "-" + str(nb_edges) + "-logFile.txt" , "wt")
 resultsFile = open("Out/" + str(nb_nodes) + "-" + str(nb_edges) + "-resultsFile.txt" , "wt")
-colorsFile = open("Out/" + str(nb_nodes) + "-" + str(nb_edges) + "-colorsFile.txt" , "wt")
 
 logFile.write("nbCol: " + str(p_nb_col) + "\n")
 logFile.write("epsilon: " + str(p_epsilon) + "\n")
@@ -99,7 +97,6 @@ resultsFile.write("epsilon: " + str(p_epsilon) + "\n")
 resultsFile.write("lambda: " + str(p_lambda) + "\n")
 resultsFile.write("ratioFreezed: " + str(p_ratioFreezed) + "\n")
 resultsFile.write("maxRip: " + str(p_maxRip) + "\n")
-#endif // WRITE
 
 ####################################################################
 #initialiser les couleurs des nb_nodes
@@ -112,8 +109,13 @@ func_initColoring(np.uint32(nb_nodes), coloring_d, np.float32(p_nb_col), rand_st
 
 rip = 0
 
-print "Couleurs des sommets initial: "
-print coloring_d.get()
+colors = coloring_d.get()
+#print "Couleurs des sommets initial: "
+#print colors
+resultsFile.write("\n_______________\n")
+resultsFile.write("Initial colors:\n\n")
+for index in range(len(colors)):
+    resultsFile.write("node " + str(index) + ": " + str(colors[index]) + "\n")
 
 ############
 #np.set_printoptions(threshold=np.nan)
@@ -148,8 +150,8 @@ while (rip < p_maxRip):
     logFile.write("<<< Tentative numero: " + str(rip) + " >>>\n")
     logFile.write("conflits relatifs: " + str(conflictCounter) + "\n")
 
-    resultsFile .write("iteration " + str(rip) + "\n")
-    resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter) + "\n")
+    #resultsFile .write("iteration " + str(rip) + "\n")
+    #resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter) + "\n")
 
     colorsChecker_d = gpuarray.zeros(nb_nodes * p_nb_col, np.bool)
     orderedColors_d = gpuarray.zeros(nb_nodes * p_nb_col, np.uint32)
@@ -164,8 +166,13 @@ while (rip < p_maxRip):
 
 #fin algorithme
 
-print "Couleurs des sommets final: "
-print coloring_d.get()
+colors = coloring_d.get()
+#print "Couleurs des sommets final: "
+#print colors
+resultsFile.write("\n_____________\n")
+resultsFile.write("Final colors:\n\n")
+for index in range(len(colors)):
+    resultsFile.write("node " + str(index) + ": " + str(colors[index]) + "\n")
 
 
 
