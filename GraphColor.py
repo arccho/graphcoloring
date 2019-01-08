@@ -54,18 +54,20 @@ class GraphColor:
 
         #list of all neighbors of all nodes
         self.listNeighbors = list()
-        self.listDeg = [0] * nb_nodes
+        self.listDeg = []
         tStart = tm.time()
         print("start list of neighbors")
         for num_node in range(nb_nodes):
             self.listNeighbors.append([])
-            for index in range(len(self.node_source)):
-                if self.node_source[index] == num_node:
-                    self.listNeighbors[num_node].append(self.node_destination[index])
-                if self.node_destination[index] == num_node:
-                    self.listNeighbors[num_node].append(self.node_source[index])
-            #print self.listNeighbors[num_node]
-            self.listDeg[num_node] = len(self.listNeighbors[num_node])
+
+        for index in range(len(self.node_source)):
+                self.listNeighbors[self.node_source[index]].append(self.node_destination[index])
+                self.listNeighbors[self.node_destination[index]].append(self.node_source[index])
+
+        #list of degree = number of neighbors for each node
+        for num_node in range(len(self.listNeighbors)):
+            self.listDeg.append(len(self.listNeighbors[num_node]))
+            #print self.listNeighbors2[num_node]
         #print self.listDeg
         print("end list of neighbors")
         print('Time: %.1f s' % (tm.time() - tStart))

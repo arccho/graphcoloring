@@ -108,6 +108,6 @@ def create_graph(name_file, nb_nodes, prob_edge):
 
 tStart = tm.time()
 
-create_graph("100k", 100000, 0.0005)
+create_graph("100k", 100000, 0.005)
 
 print('Time: %.1f s' %(tm.time() - tStart))
