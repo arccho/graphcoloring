@@ -139,22 +139,24 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     #print MyGraph.cuda_edges.get()
     #######################
 
+    # compute nb of conflict before a tentative
+    func_conflictChecker = mod.get_function("conflictChecker")
+    func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges,
+                         grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
+
+    # print conflictCounter_d.get()
+    func_sumReduction = mod.get_function("sumReduction")
+    func_sumReduction(np.uint32(nb_edges), conflictCounter_d, grid=blocksPerGrid_half_edges, block=threadsPerBlock,
+                      shared=(threadsPerBlock[0] * sizeof_uint32), time_kernel=True)
+
+    conflictCounter_h = conflictCounter_d.get()
+
+    conflictCounter = 0
+    for i in range(blocksPerGrid_half_edges[0]):
+        conflictCounter += conflictCounter_h[i]
+
     while (rip < p_maxRip):
         rip = rip + 1
-
-        # compute nb of conflict before a tentative
-        func_conflictChecker = mod.get_function("conflictChecker")
-        func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges, grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
-
-        #print conflictCounter_d.get()
-        func_sumReduction = mod.get_function("sumReduction")
-        func_sumReduction(np.uint32(nb_edges), conflictCounter_d, grid=blocksPerGrid_half_edges, block=threadsPerBlock, shared=(threadsPerBlock[0]*sizeof_uint32), time_kernel=True)
-
-        conflictCounter_h = conflictCounter_d.get()
-
-        conflictCounter = 0
-        for i in range(blocksPerGrid_half_edges[0]):
-            conflictCounter += conflictCounter_h[i]
 
         if conflictCounter == 0:
             break
