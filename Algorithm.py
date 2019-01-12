@@ -6,6 +6,7 @@ from pycuda.compiler import SourceModule
 import parser_parameters
 import numpy as np
 import time
+from collections import Counter
 
 def AlgorithmMCMC(graph_file, file_parameters = None):
 
@@ -36,7 +37,6 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     #params if file given
     if file_parameters != None:
         parameters_from_file = parser_parameters.parser_parameters(file_parameters)
-        print parameters_from_file
         if parameters_from_file[0] != None:
             p_epsilon = float(parameters_from_file[0])
         if parameters_from_file[1] != None:
@@ -142,6 +142,7 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     while (rip < p_maxRip):
         rip = rip + 1
 
+        # compute nb of conflict before a tentative
         func_conflictChecker = mod.get_function("conflictChecker")
         func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges, grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
 
@@ -159,10 +160,10 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
             break
 
         print "<<< Tentative numero: " + str(rip) + " >>>"
-        print "conflits relatifs: " + str(conflictCounter)
+        print "conflits relatifs avant: " + str(conflictCounter)
 
         logFile.write("<<< Tentative numero: " + str(rip) + " >>>\n")
-        logFile.write("conflits relatifs: " + str(conflictCounter) + "\n")
+        logFile.write("conflits relatifs avant: " + str(conflictCounter) + "\n")
 
         #resultsFile .write("iteration " + str(rip) + "\n")
         #resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter) + "\n")
@@ -177,8 +178,27 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
         coloring_d = starColoring_d
         starColoring_d = temp
 
+        #compute nb of conflict after a tentative
+        func_conflictChecker = mod.get_function("conflictChecker")
+        func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges, grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
+
+        #print conflictCounter_d.get()
+        func_sumReduction = mod.get_function("sumReduction")
+        func_sumReduction(np.uint32(nb_edges), conflictCounter_d, grid=blocksPerGrid_half_edges, block=threadsPerBlock, shared=(threadsPerBlock[0]*sizeof_uint32), time_kernel=True)
+
+        conflictCounter_h = conflictCounter_d.get()
+
+        conflictCounter = 0
+        for i in range(blocksPerGrid_half_edges[0]):
+            conflictCounter += conflictCounter_h[i]
+
+        print "conflits relatifs apres: " + str(conflictCounter) + "\n"
+        logFile.write("conflits relatifs apres: " + str(conflictCounter) + "\n")
+
 
     #fin algorithme
+    print "Fin MCMC\n"
+    logFile.write("Fin MCMC\n")
 
     colors = coloring_d.get()
     #print "Couleurs des sommets final: "
@@ -187,6 +207,13 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     resultsFile.write("Final colors:\n\n")
     for index in range(len(colors)):
         resultsFile.write("node " + str(index) + ": " + str(colors[index]) + "\n")
+
+    resultsFile.write("\n___________________________\n")
+    resultsFile.write("Counter of each color used:\n")
+    counter_colors_used = Counter(colors)
+    for key, value in counter_colors_used.iteritems():
+        resultsFile.write("\nColor " + str(key) + ": " + str(value))
+
 
 
 
