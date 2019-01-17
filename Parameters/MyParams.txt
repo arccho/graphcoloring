@@ -1,3 +1,4 @@
+numThreads=4
 epsilon=1e-8
 lambda=0.01
 ratioFreezed=1e-2

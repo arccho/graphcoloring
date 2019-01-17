@@ -46,4 +46,4 @@ def parsefile(name_file):
     #destination = np.array(destination, dtype='|S' + len_id_node)
     #weight = np.array(weight)
 
-    return int(nb_nodes), int(nb_edges), dic_nodes, source, destination, weight
+    return len(nodes), len(source), dic_nodes, source, destination, weight

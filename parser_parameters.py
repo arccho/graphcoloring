@@ -1,6 +1,6 @@
 
 def parser_parameters(parameters_file):
-    parameters = [None] * 4
+    parameters = [None] * 5
     file = open("Parameters/" + parameters_file, "rt")
     content = file.read()
     if content is not False:
@@ -16,4 +16,6 @@ def parser_parameters(parameters_file):
                     parameters[2] = element_line[1]
                 if element_line[0].lower() == "maxrip":
                     parameters[3] = element_line[1]
+                if element_line[0].lower() == "numthreads":
+                    parameters[4] = element_line[1]
     return parameters

@@ -45,6 +45,8 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
             p_ratioFreezed = float(parameters_from_file[2])
         if parameters_from_file[3] != None:
             p_maxRip = int(parameters_from_file[3])
+        if parameters_from_file[4] != None:
+            p_numThreads = int(parameters_from_file[4])
 
     #configuration grille
     threadsPerBlock = (p_numThreads, 1, 1)
@@ -90,6 +92,7 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
 
     print "ColoringMCMC GPU"
     print "nbCol: " +str(p_nb_col)
+    print "numThreads: " + str(p_numThreads)
     print "epsilon: " + str(p_epsilon)
     print "lambda: " + str(p_lambda)
     print "ratioFreezed: " + str(p_ratioFreezed)
