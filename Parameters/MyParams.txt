@@ -1,5 +1,3 @@
-numThreads=4
+numThreads=32
 epsilon=1e-8
-lambda=0.01
-ratioFreezed=1e-2
-maxRip=10
+maxRip=250

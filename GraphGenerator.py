@@ -98,16 +98,16 @@ def writing_file_graph(name_file, list_node, list_edge):
 
 
 def create_graph(name_file, nb_nodes, prob_edge):
+    tStart = tm.time()
     liste_id = node_generator(nb_nodes)
     list_edge = create_edges(liste_id, prob_edge)
-    writing_file_graph("Graph/" + name_file + ".txt", liste_id, list_edge)
+    writing_file_graph("Graph/" + name_file, liste_id, list_edge)
+    print('Time: %.1f s' % (tm.time() - tStart))
 
 ##################################
 ###########     EXEC    ##########
 ##################################
 
-tStart = tm.time()
 
-create_graph("10k", 10000, 0.005)
 
-print('Time: %.1f s' %(tm.time() - tStart))
+#create_graph("10k", 10000, 0.005)

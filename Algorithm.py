@@ -51,8 +51,8 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     #configuration grille
     threadsPerBlock = (p_numThreads, 1, 1)
     blocksPerGrid = ((nb_nodes + p_numThreads - 1) / p_numThreads, 1, 1)
-    blocksPerGrid_nCol = ((p_nb_col + threadsPerBlock[0] - 1)/threadsPerBlock[0], 1, 1)
-    blocksPerGrid_half = (((nb_nodes / 2) + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
+    #blocksPerGrid_nCol = ((p_nb_col + threadsPerBlock[0] - 1)/threadsPerBlock[0], 1, 1)
+    #blocksPerGrid_half = (((nb_nodes / 2) + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
     blocksPerGrid_edges = ((nb_edges + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
     blocksPerGrid_half_edges = (((nb_edges / 2) + threadsPerBlock[0] - 1) / threadsPerBlock[0], 1, 1)
 
@@ -83,8 +83,9 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     coloring_d = gpuarray.zeros(nb_nodes, np.uint32)
     starColoring_d = gpuarray.zeros(nb_nodes, np.uint32)
     qStar_d = gpuarray.zeros(nb_nodes, np.float32)
-    conflictCounter_h = np.zeros(nb_edges)
     conflictCounter_d = gpuarray.zeros(nb_edges, np.uint32)
+    colorsChecker_d = gpuarray.zeros(nb_nodes * p_nb_col, np.bool)
+    orderedColors_d = gpuarray.zeros(nb_nodes * p_nb_col, np.uint32)
 
     free_mem, tot_mem = cuda.mem_get_info()
     print "total memory: " + str(tot_mem) + " free memory: " + str(free_mem)
@@ -142,13 +143,18 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
     #print MyGraph.cuda_edges.get()
     #######################
 
-    # compute nb of conflict before a tentative
     func_conflictChecker = mod.get_function("conflictChecker")
+    func_sumReduction = mod.get_function("sumReduction")
+    func_selectStarColoring = mod.get_function("selectStarColoring")
+
+    tStart = tm.time()
+
+    # compute nb of conflict before a tentative
     func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges,
                          grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
 
     # print conflictCounter_d.get()
-    func_sumReduction = mod.get_function("sumReduction")
+
     func_sumReduction(np.uint32(nb_edges), conflictCounter_d, grid=blocksPerGrid_half_edges, block=threadsPerBlock,
                       shared=(threadsPerBlock[0] * sizeof_uint32), time_kernel=True)
 
@@ -173,10 +179,9 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
         #resultsFile .write("iteration " + str(rip) + "\n")
         #resultsFile.write("iteration_" + str(rip) + "_conflits " + str(conflictCounter) + "\n")
 
-        colorsChecker_d = gpuarray.zeros(nb_nodes * p_nb_col, np.bool)
-        orderedColors_d = gpuarray.zeros(nb_nodes * p_nb_col, np.uint32)
+        colorsChecker_d.fill(0)
+        orderedColors_d.fill(0)
 
-        func_selectStarColoring = mod.get_function("selectStarColoring")
         func_selectStarColoring(np.uint32(nb_nodes), starColoring_d, qStar_d, np.uint32(p_nb_col), coloring_d, MyGraph.cuda_listCumulDeg, MyGraph.cuda_listNeighbors, colorsChecker_d, orderedColors_d, rand_states, np.uint32(p_epsilon), grid=blocksPerGrid, block=threadsPerBlock, time_kernel=True)
 
         temp = coloring_d
@@ -184,11 +189,9 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
         starColoring_d = temp
 
         #compute nb of conflict after a tentative
-        func_conflictChecker = mod.get_function("conflictChecker")
         func_conflictChecker(np.uint32(nb_edges), conflictCounter_d, coloring_d, MyGraph.cuda_edges, grid=blocksPerGrid_edges, block=threadsPerBlock, time_kernel=True)
 
         #print conflictCounter_d.get()
-        func_sumReduction = mod.get_function("sumReduction")
         func_sumReduction(np.uint32(nb_edges), conflictCounter_d, grid=blocksPerGrid_half_edges, block=threadsPerBlock, shared=(threadsPerBlock[0]*sizeof_uint32), time_kernel=True)
 
         conflictCounter_h = conflictCounter_d.get()
@@ -202,7 +205,7 @@ def AlgorithmMCMC(graph_file, file_parameters = None):
 
 
     #fin algorithme
-    print "Fin MCMC\n"
+    print('Fin MCMC en : %.3f s' % (tm.time() - tStart))
     logFile.write("Fin MCMC\n")
 
     colors = coloring_d.get()
